@@ -15,7 +15,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from threading import Thread
 
-from sftp import SCPFile
+from sftp import SCPFile, SCPException
 from config import Config
 
 FILE_QUEUE = []
@@ -65,7 +65,7 @@ class ToServer(FileSystemEventHandler):
             if path[:1] == '/':
                 src_path = path[1:]
         else:
-            src_path = src_path.replace('\\', '/').replace('./', '')
+            src_path = self.path_deal(src_path)
 
         if any([fnmatch.fnmatchcase(src_path, pat=f) for f in Config.FILTER_FILE_OR_DIRECTORY if f]):
             return True
@@ -121,6 +121,8 @@ class UploadToServer:
 
                 except FileNotFoundError:
                     pass
+                # except SCPException:
+                #     pass
                 except KeyboardInterrupt:
                     break
                 except:

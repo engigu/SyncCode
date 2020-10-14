@@ -1,6 +1,6 @@
 import os
 from paramiko import SSHClient, Transport, AutoAddPolicy
-from scp import SCPClient
+from scp import SCPClient, SCPException
 
 from config import Config
 import logging
