@@ -19,5 +19,6 @@ class Config:
         '.idea/*',
         '__pycache__/*',
         '.git/*',
+        '.git',
         'logs/*'
     ]

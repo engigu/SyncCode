@@ -37,13 +37,12 @@ class Queue:
 
 
 class ToServer(FileSystemEventHandler):
-    src_base_path = ''
-    dest_base_path = ''
 
-
-    def __init__(self):
+    def __init__(self, src_base_path, dest_base_path):
         super(ToServer, self).__init__()
         self.file_queue = Queue()
+        self.src_base_path = src_base_path
+        self.dest_base_path =dest_base_path
         # # 开启服务时上传一遍文件至远程文件夹
         self.upload_hole_path()
         logging.info('ready to upload files...')
@@ -134,9 +133,7 @@ class UploadToServer:
 def start_file_watcher():
     observer = Observer()
     for src_path, dest_path in Config.FOLDER_MAPPING.items():
-        setattr(ToServer, 'src_base_path', src_path)
-        setattr(ToServer, 'dest_base_path', dest_path)
-        event_handler = ToServer()
+        event_handler = ToServer(src_path, dest_path)
         observer.schedule(event_handler, src_path, recursive=True)
     observer.start()
 
