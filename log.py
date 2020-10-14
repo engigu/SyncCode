@@ -14,10 +14,10 @@ def genLogDict(logDir, logFile):
         "disable_existing_loggers": False,
         "formatters": {
             "simple": {
-                'format': '%(asctime)s [%(name)s:%(lineno)d] [%(levelname)s]- %(message)s'
+                'format': '[%(levelname).1s %(asctime)s %(filename)s:%(lineno)d] - %(message)s'
             },
             'standard': {
-                'format': '%(asctime)s [%(threadName)s:%(thread)d] [%(name)s:%(lineno)d] [%(levelname)s]- %(message)s'
+                'format': '[%(levelname).1s %(asctime)s %(filename)s:%(lineno)d] - %(message)s'
             },
         },
 
@@ -26,9 +26,7 @@ def genLogDict(logDir, logFile):
                 "class": "logging.StreamHandler",
                 "level": "DEBUG",
                 "formatter": "simple",
-                "stream": "ext://sys.stdout"
             },
-
             "default": {
                 "class": "logging.handlers.RotatingFileHandler",
                 "level": "INFO",
@@ -41,16 +39,8 @@ def genLogDict(logDir, logFile):
             },
         },
 
-        # "loggers": {
-        #     "app_name": {
-        #         "level": "INFO",
-        #         "handlers": ["console"],
-        #         "propagate": "no"
-        #     }
-        # },
-
         "root": {
-            'handlers': ['default'],
+            'handlers': ['default', 'console'],
             'level': "INFO",
             'propagate': False
         }
@@ -75,6 +65,4 @@ def initLogConf():
 if __name__ == '__main__':
     initLogConf()
     log = logging.getLogger(__file__)
-    print
-    "print A"
     log.info("log B")

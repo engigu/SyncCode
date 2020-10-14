@@ -6,21 +6,13 @@ from config import Config
 import logging
 
 
-# ssh = SSHClient()
-# ssh.load_system_host_keys()
-# ssh.connect('example.com')
-#
-# with SCPClient(ssh.get_transport()) as scp:
-#     scp.put('test.txt', 'test2.txt')
-#     scp.get('test2.txt')
-
-
 class SCPFile:
+    src_base_path = ''
+    dest_base_path = ''
 
     def __init__(self):
         self.ssh = self.ssh_client()
         self.logger = logging
-        pass
 
     def ssh_client(self) -> SSHClient:
         tsp = SSHClient()
@@ -31,8 +23,6 @@ class SCPFile:
     def put(self, ssh, path, abs_path):
         with SCPClient(ssh.get_transport()) as scp:
             scp.put(path, remote_path=abs_path, recursive=True)
-
-        # self.logger.info('upload %r to %r' % (path, abs_path))
 
     def create_file(self, path, do_logger=True):
         # ssh = self.ssh_client()
@@ -46,12 +36,17 @@ class SCPFile:
         #     scp.put(path, remote_path=abs_path, recursive=True)
 
         self.put(ssh, path, abs_path)
-        # ssh.close()
         if do_logger:
             self.logger.info('upload %r to %r' % (path, abs_path))
+        return path, abs_path
 
     def remote_file_abs_path(self, path):
-        abs_path = '/'.join([Config.BASE_ROOT_PATH, path])
+        if os.path.isabs(path):
+            commonpath = os.path.commonpath([self.src_base_path, path]).replace('\\', '/').replace('./', '')
+            path = path.replace(commonpath, '').replace('\\', '/').replace('./', '')
+            if path[:1] == '/':
+                path = path[1:]
+        abs_path = '/'.join([self.dest_base_path, path])
         return abs_path
 
     def delete_file(self, path, do_logger=True):
@@ -63,25 +58,11 @@ class SCPFile:
 
     def move_file(self, src_path, dest_path, do_logger=True):
         self.delete_file(src_path, do_logger=False)
-        self.create_file(dest_path, do_logger=False)
+        path, abs_path = self.create_file(dest_path, do_logger=False)
         if do_logger:
-            self.logger.info('move %r to %r' % (src_path, dest_path))
-
-    def path_deal(self, path: str):
-        return path.replace('\\', '/').replace('./', '')
-
-    def upload_hole_path(self, path):
-        # 上传整个文件夹
-        for root, dirs, files in os.walk(path):
-            for name in files:
-                file = self.path_deal(os.path.join(root, name))
-                self.create_file(file)
+            self.logger.info('move %r to %r' % (src_path, abs_path))
 
 
 if __name__ == '__main__':
     s = SCPFile()
     s.create_file('log.py')
-    s.upload_hole_path(
-        ''
-    )
-    pass
