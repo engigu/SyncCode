@@ -6,12 +6,19 @@ from config import Config
 import logging
 
 
+def get_ssh_client() -> SSHClient:
+    tsp = SSHClient()
+    tsp.set_missing_host_key_policy(AutoAddPolicy)
+    tsp.connect(Config.HOST, Config.PORT, Config.USERNAME, Config.PASSWORD)
+    return tsp
+
+
 class SCPFile:
     src_base_path = ''
     dest_base_path = ''
 
-    def __init__(self):
-        self.ssh = self.ssh_client()
+    def __init__(self, ssh_client=None):
+        self.ssh = get_ssh_client() if ssh_client is None else ssh_client
         self.logger = logging
 
     def ssh_client(self) -> SSHClient:
@@ -22,7 +29,7 @@ class SCPFile:
 
     def put(self, ssh, path, abs_path):
         with SCPClient(ssh.get_transport()) as scp:
-            scp.put(path, remote_path=abs_path, recursive=True)
+            scp.put(path, remote_path=abs_path, recursive=True, preserve_times=True)
 
     def create_file(self, path, do_logger=True):
         # ssh = self.ssh_client()
@@ -32,8 +39,11 @@ class SCPFile:
         dir_name = os.path.dirname(abs_path)
         ssh.exec_command('[ ! -d %s ] && mkdir -p %s' % (dir_name, dir_name))
 
-        # with SCPClient(ssh.get_transport()) as scp:
-        #     scp.put(path, remote_path=abs_path, recursive=True)
+        try:
+            ssh.exec_command('[ ! -d %s ] && mkdir -p %s' % (dir_name, dir_name))
+        except:
+            self.ssh = get_ssh_client()
+            ssh.exec_command('[ ! -d %s ] && mkdir -p %s' % (dir_name, dir_name))
 
         self.put(ssh, path, abs_path)
         if do_logger:
